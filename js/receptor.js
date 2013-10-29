@@ -28,7 +28,7 @@ Receptor = function(x, y, type){
 	this.node = new PIXI.Graphics();
 	this.node.beginFill(this.type.color);
 	this.node.lineStyle(2, 0xfff, 1);
-	this.node.drawCircle(x, y, RECEPTOR_RADIUS);
+	this.node.drawCircle(0, 0, RECEPTOR_RADIUS);
 	this.addChild(this.node);
 	
 	this.node.interactivity = true;
