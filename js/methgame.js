@@ -15,9 +15,13 @@ Time.prototype.update = function () {
     this.lastTime = a
 };
 
-/**************************************************
-	SimpleApp Class
-***************************************************/
+
+/**
+ * SimpleApp - controls screens and switching screens
+ *
+ * @class SimpleApp
+ * @constructor
+ */
 SimpleApp = function (a) {
     this.container = a; //stage
     this.screens = {};
@@ -33,7 +37,7 @@ SimpleApp.prototype.gotoScreenByID = function (a) {
 };
 SimpleApp.prototype.gotoScreen = function (a, b) {
     if (this.currentScreen != a && (this.nextScreen = a, !this.fading))
-        if (this.fading = true, this.currentScreen) b ? new TWEEN.Tween(this.currentScreen).to({alpha:0},400).onComplete($.proxy(this.onFadeout, this)).start() : new TWEEN.Tween(this.currentScreen).to({alpha:0},400).onComplete($.proxy(this.onFadeout, this)).start();
+        if (this.fading = true, this.currentScreen) b ? new TWEEN.Tween(this.currentScreen).to({alpha:0},100).onComplete($.proxy(this.onFadeout, this)).start() : new TWEEN.Tween(this.currentScreen).to({alpha:0},100).onComplete($.proxy(this.onFadeout, this)).start();
         else this.onFadeout()
 };
 SimpleApp.prototype.onFadeout = function () {
@@ -61,8 +65,14 @@ SimpleApp.prototype.resize = function (a, b) {
     this.currentScreen && this.currentScreen.resize && this.currentScreen.resize(this.w, this.h)
 };
 
+
+/**
+ * Startup
+ *
+ * @class Startup
+ * @constructor
+ */
 Startup = function () {
-    //this.loader = new PIXI.AssetLoader("img/BG_col_01.png img/BG_col_02.png img/BG_col_03.png img/BG_col_04.png img/BG_col_05.png img/ohdeer.png img/TITLE.png img/play_again_rollpress.png img/submit_rollpress.png img/play.png img/play_rollpress.png img/fullTimeHobby.png img/PP.png img/goodboy.png img/gameAssets-hd.json img/frontEndAssets-hd.json img/handAssets-hd.json img/hudAssets.json".split(" "));
     this.loader = new PIXI.AssetLoader("img/devil_shit_lq.jpg".split(" "));
     simpleApp.gotoScreen(loadingScreen);
     this.loader.addEventListener("onComplete", function () {
@@ -80,7 +90,13 @@ Startup.prototype.run = function () {
 };
 
 
-
+/**
+ * Loadingscreen
+ *
+ * @class LoadingScreen
+ * @extends PIXI.DisplayObjectContainer
+ * @constructor
+ */
 LoadingScreen = function () {
     PIXI.DisplayObjectContainer.call(this);
     this.loading = new PIXI.Text("Loading");
@@ -98,6 +114,45 @@ LoadingScreen.prototype.resize = function (a, b) {
 };
 
 
+/**
+ * Receptor base class
+ *
+ * @class Receptor
+ * @extends PIXI.DisplayObjectContainer
+ * @constructor
+ * @param pos {PIXI.Point} 2D position, center of receptor
+ */
+Receptor = function(x, y, type){
+	PIXI.DisplayObjectContainer.call(this);
+	
+	this.type = type || Receptor.types.METH; //default to meth
+	
+	this.position.x = x;
+	this.position.y = y;
+	
+	this.node = new PIXI.Graphics();
+	this.node.beginFill(this.type.color);
+	this.node.lineStyle(2, 0xfff, 1);
+	this.node.drawCircle(0, 0, Receptor.radius);
+	this.addChild(this.node);
+	
+	this.node.interactivity = true;
+}
+Receptor.constructor = Receptor;
+Receptor.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
+Receptor.prototype.getType = function(){
+	return this.type;
+}
+Receptor.prototype.getDisplayObject = function(){
+	return this.node;
+}
+Receptor.radius = 50;
+
+Receptor.types = {
+	METH : {value:0, name:"Methanphetamine", color: 0x8A2BE2}, //blue violet
+	DOPAMINE : {value:1, name:"Dopamine", color: 0xFF8C00}, //dark orange
+	SERATONIN: {value:3, name:"Seratonin", color: 0x228B22}, //Forest green
+};
 
 var GAME = {};
 GAME.time = new Time;
@@ -106,7 +161,15 @@ GAME.Game = function() {
 	GAME.height = 1303;
 	PIXI.DisplayObjectContainer.call(this);
 	//level objects here
-	this.methTest = new Receptor(100,100,RECEPTOR_TYPES.METH);
+	this.grid = [];
+	this.gridDim = new PIXI.Point(10,10);
+	for(var x = 0; x < gridDim.x; ++x){
+	   this.grid.push([]);
+    	for(var y = 0; y < gridDim.y; ++y){
+    	   this.grid[x].push(new Receptor(x*Receptor.radius*2+Receptor.radius, y*Receptor.radius*2+Receptor.radius, Receptor.types.METH));
+    	}
+	}
+	this.methTest = new Receptor(100,100,Receptor.types.METH);
 	this.mx = 100;
 	this.addChild(this.methTest);
 	this.score = 0;
@@ -150,6 +213,26 @@ GAME.Game.prototype.resize = function (a, b) {
     //this.gameoverView.resize(a, b)
 };
 
+/**
+ * Grid which holds all the
+ */
+Grid = function(dimx,dimy){
+	PIXI.DisplayObjectContainer.call(this);
+	
+	this.grid = [];
+	this.gridDim = new PIXI.Point(dimx,dimy);
+	for(var x = 0; x < gridDim.x; ++x){
+	   this.grid.push([]);
+    	for(var y = 0; y < gridDim.y; ++y){
+    	   this.grid[x].push(new Receptor(x*Receptor.radius*2+Receptor.radius,
+    	                                  y*Receptor.radius*2+Receptor.radius, 
+    	                                  Receptor.types.METH));
+    	}
+	}
+
+}
+Grid.constructor = Grid;
+Grid.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
 
 
 var ratio = new PIXI.Point(11./14., 1.);
